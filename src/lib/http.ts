@@ -73,6 +73,20 @@ export function manejar<Ctx = unknown>(handler: Handler<Ctx>): HandlerExportado<
       const { status, cuerpo } = traducir(error);
       // Log sin tokens ni datos personales: solo id de petición, método y estado.
       console.error(`[api ${idPeticion}] ${request.method} ${status}`);
+      if (status >= 500) {
+        // Solo la causa: sin stack, cuerpo, cabeceras, cookies, tokens ni entorno.
+        const nombre = error instanceof Error ? error.name : typeof error;
+        const codigo =
+          typeof error === "object" && error !== null && "code" in error
+            ? String((error as { code?: unknown }).code ?? "")
+            : "";
+        const mensaje = String(error instanceof Error ? error.message : error)
+          .replace(/\s+/g, " ")
+          .slice(0, 200);
+        console.error(
+          `[api ${idPeticion}] causa ${nombre}${codigo ? ` code=${codigo}` : ""} ${mensaje}`,
+        );
+      }
       return Response.json(cuerpo, { status, headers: { "Cache-Control": "no-store" } });
     }
   };
