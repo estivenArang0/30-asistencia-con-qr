@@ -1,5 +1,7 @@
 /** Contrato del repositorio de asistencias + implementación en memoria. */
 import { AppError } from "@/lib/errores";
+import { firebaseAdminDisponible } from "@/lib/config";
+import { RepositorioAsistenciasFirestore } from "@/repositories/asistencias-firestore";
 import { repositorioSesiones } from "@/repositories/sesiones";
 
 export interface SesionAsistencia {
@@ -94,21 +96,31 @@ export class RepositorioAsistenciasEnMemoria implements RepositorioAsistencias {
 }
 
 /**
- * Singleton en `globalThis`: sobrevive al hot reload de Next en desarrollo.
- * El proveedor por defecto consulta el repositorio de sesiones vigente.
+ * Selección de repositorio: inyección de pruebas > Firestore (si hay credenciales)
+ * > memoria. Los singletons viven en `globalThis` para sobrevivir al hot reload.
  */
-type EstadoRepositorios = { reposAsistencias?: RepositorioAsistenciasEnMemoria };
+type EstadoRepositorios = {
+  memoriaAsistencias?: RepositorioAsistenciasEnMemoria;
+  firestoreAsistencias?: RepositorioAsistenciasFirestore;
+  reemplazoAsistencias?: RepositorioAsistencias;
+};
 
 const ambito = globalThis as typeof globalThis & { __qrRepositorios?: EstadoRepositorios };
 
-export function repositorioAsistencias(): RepositorioAsistenciasEnMemoria {
+export function repositorioAsistencias(): RepositorioAsistencias {
   ambito.__qrRepositorios ??= {};
-  ambito.__qrRepositorios.reposAsistencias ??= new RepositorioAsistenciasEnMemoria();
-  return ambito.__qrRepositorios.reposAsistencias;
+  const estado = ambito.__qrRepositorios;
+  if (estado.reemplazoAsistencias) return estado.reemplazoAsistencias;
+  if (firebaseAdminDisponible()) {
+    estado.firestoreAsistencias ??= new RepositorioAsistenciasFirestore(repositorioSesiones());
+    return estado.firestoreAsistencias;
+  }
+  estado.memoriaAsistencias ??= new RepositorioAsistenciasEnMemoria();
+  return estado.memoriaAsistencias;
 }
 
-/** Inyección para pruebas: reemplaza el singleton por una instancia limpia. */
-export function reemplazarRepositorioAsistencias(repo: RepositorioAsistenciasEnMemoria): void {
+/** Inyección para pruebas: reemplaza el repositorio por una instancia limpia. */
+export function reemplazarRepositorioAsistencias(repo: RepositorioAsistencias): void {
   ambito.__qrRepositorios ??= {};
-  ambito.__qrRepositorios.reposAsistencias = repo;
+  ambito.__qrRepositorios.reemplazoAsistencias = repo;
 }

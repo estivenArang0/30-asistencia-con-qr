@@ -11,3 +11,12 @@ export function obtenerSecretoQr(entorno: NodeJS.ProcessEnv = process.env): stri
   }
   return secreto;
 }
+
+/** Hay credenciales de servicio de Firebase (sin cargar el SDK). */
+export function firebaseAdminDisponible(entorno: NodeJS.ProcessEnv = process.env): boolean {
+  return Boolean(
+    entorno.FIREBASE_PROJECT_ID &&
+      entorno.FIREBASE_CLIENT_EMAIL &&
+      entorno.FIREBASE_PRIVATE_KEY,
+  );
+}

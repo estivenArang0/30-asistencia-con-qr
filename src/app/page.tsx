@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { leerToken, pedir, usuarioDelToken, type UsuarioDev } from "@/lib/cliente";
+import { useEffect, useState } from "react";
+import { pedir } from "@/lib/cliente";
+
+interface Usuario {
+  uid: string;
+  rol: "docente" | "estudiante";
+}
 
 interface SesionListada {
   id: string;
@@ -14,22 +19,27 @@ interface SesionListada {
 type Estado = "cargando" | "error" | "vacio" | "listo";
 
 export default function InicioPage() {
-  const [usuario] = useState<UsuarioDev | null>(() =>
-    typeof window === "undefined" ? null : usuarioDelToken(leerToken()),
-  );
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [cargandoUsuario, setCargandoUsuario] = useState(true);
   const [sesiones, setSesiones] = useState<SesionListada[]>([]);
   const [estado, setEstado] = useState<Estado>("cargando");
 
-  const cargar = useCallback(async () => {
-    if (!usuario || usuario.rol !== "docente") return;
-    try {
-      const datos = await pedir<{ sesiones: SesionListada[] }>("/api/sesiones");
-      setSesiones(datos.sesiones);
-      setEstado(datos.sesiones.length === 0 ? "vacio" : "listo");
-    } catch {
-      setEstado("error");
-    }
-  }, [usuario]);
+  useEffect(() => {
+    let vivo = true;
+    pedir<{ usuario: Usuario }>("/api/auth/yo")
+      .then((datos) => {
+        if (vivo) setUsuario(datos.usuario);
+      })
+      .catch(() => {
+        if (vivo) setUsuario(null);
+      })
+      .finally(() => {
+        if (vivo) setCargandoUsuario(false);
+      });
+    return () => {
+      vivo = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!usuario || usuario.rol !== "docente") return;
@@ -51,7 +61,22 @@ export default function InicioPage() {
 
   function reintentar() {
     setEstado("cargando");
-    void cargar();
+    pedir<{ sesiones: SesionListada[] }>("/api/sesiones")
+      .then((datos) => {
+        setSesiones(datos.sesiones);
+        setEstado(datos.sesiones.length === 0 ? "vacio" : "listo");
+      })
+      .catch(() => setEstado("error"));
+  }
+
+  if (cargandoUsuario) {
+    return (
+      <div className="tarjeta esqueleto" aria-busy="true">
+        <span />
+        <span />
+        <p>Cargando tu cuenta…</p>
+      </div>
+    );
   }
 
   if (!usuario) {
@@ -60,7 +85,7 @@ export default function InicioPage() {
         <h1>Control de asistencia con QR</h1>
         <p>Necesitas iniciar sesión para usar el tablero.</p>
         <Link className="boton" href="/login">
-          Iniciar sesión de desarrollo
+          Iniciar sesión
         </Link>
       </div>
     );

@@ -3,23 +3,47 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { borrarToken, leerToken, usuarioDelToken, type UsuarioDev } from "@/lib/cliente";
+import { borrarToken, pedir } from "@/lib/cliente";
+
+interface Usuario {
+  uid: string;
+  rol: string;
+}
 
 export function BarraSesion() {
   const router = useRouter();
-  const [usuario, setUsuario] = useState<UsuarioDev | null>(() =>
-    typeof window === "undefined" ? null : usuarioDelToken(leerToken()),
-  );
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [listo, setListo] = useState(false);
 
   useEffect(() => {
-    const alCambiar = () => setUsuario(usuarioDelToken(leerToken()));
-    window.addEventListener("storage", alCambiar);
-    return () => window.removeEventListener("storage", alCambiar);
+    let vivo = true;
+    pedir<{ usuario: Usuario }>("/api/auth/yo")
+      .then((datos) => {
+        if (vivo) setUsuario(datos.usuario);
+      })
+      .catch(() => {
+        if (vivo) setUsuario(null);
+      })
+      .finally(() => {
+        if (vivo) setListo(true);
+      });
+    return () => {
+      vivo = false;
+    };
   }, []);
+
+  async function salir() {
+    borrarToken();
+    await fetch("/api/auth/sesion", { method: "DELETE" });
+    router.push("/login");
+    router.refresh();
+  }
+
+  if (!listo) return null;
 
   if (!usuario) {
     return (
-      <Link href="/login" aria-label="Iniciar sesión de desarrollo">
+      <Link href="/login" aria-label="Iniciar sesión">
         Entrar
       </Link>
     );
@@ -29,13 +53,7 @@ export function BarraSesion() {
     <span>
       <span aria-hidden="true">· </span>
       {usuario.uid} ({usuario.rol}){" "}
-      <button
-        type="button"
-        onClick={() => {
-          borrarToken();
-          router.push("/login");
-        }}
-      >
+      <button type="button" onClick={() => void salir()}>
         Salir
       </button>
     </span>

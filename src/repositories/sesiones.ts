@@ -1,5 +1,7 @@
 /** Sesiones de asistencia: contrato e implementación en memoria. */
 import type { SesionAsistencia } from "@/repositories/asistencias";
+import { firebaseAdminDisponible } from "@/lib/config";
+import { RepositorioSesionesFirestore } from "@/repositories/sesiones-firestore";
 
 export interface Sesion {
   id: string;
@@ -37,23 +39,33 @@ export class RepositorioSesionesEnMemoria implements RepositorioSesiones {
 }
 
 /**
- * Singleton en `globalThis`: Next recompila los módulos en caliente y sin esto
- * cada recarga borraría las sesiones creadas en desarrollo.
+ * Selección de repositorio: inyección de pruebas > Firestore (si hay credenciales)
+ * > memoria. Los singletons viven en `globalThis` para sobrevivir al hot reload.
  */
-type EstadoRepositorios = { reposSesiones?: RepositorioSesionesEnMemoria };
+type EstadoRepositorios = {
+  memoriaSesiones?: RepositorioSesionesEnMemoria;
+  firestoreSesiones?: RepositorioSesionesFirestore;
+  reemplazoSesiones?: RepositorioSesiones;
+};
 
 const ambito = globalThis as typeof globalThis & { __qrRepositorios?: EstadoRepositorios };
 
-export function repositorioSesiones(): RepositorioSesionesEnMemoria {
+export function repositorioSesiones(): RepositorioSesiones {
   ambito.__qrRepositorios ??= {};
-  ambito.__qrRepositorios.reposSesiones ??= new RepositorioSesionesEnMemoria();
-  return ambito.__qrRepositorios.reposSesiones;
+  const estado = ambito.__qrRepositorios;
+  if (estado.reemplazoSesiones) return estado.reemplazoSesiones;
+  if (firebaseAdminDisponible()) {
+    estado.firestoreSesiones ??= new RepositorioSesionesFirestore();
+    return estado.firestoreSesiones;
+  }
+  estado.memoriaSesiones ??= new RepositorioSesionesEnMemoria();
+  return estado.memoriaSesiones;
 }
 
-/** Inyección para pruebas: reemplaza el singleton por una instancia limpia. */
-export function reemplazarRepositorioSesiones(repo: RepositorioSesionesEnMemoria): void {
+/** Inyección para pruebas: reemplaza el repositorio por una instancia limpia. */
+export function reemplazarRepositorioSesiones(repo: RepositorioSesiones): void {
   ambito.__qrRepositorios ??= {};
-  ambito.__qrRepositorios.reposSesiones = repo;
+  ambito.__qrRepositorios.reemplazoSesiones = repo;
 }
 
 /** Vista mínima que consumen los servicios de asistencia. */
