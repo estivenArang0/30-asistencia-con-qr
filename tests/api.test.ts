@@ -1,8 +1,10 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { GET as getYo } from "@/app/api/auth/yo/route";
+import { GET as getMias } from "@/app/api/asistencias/mias/route";
 import { POST as postAsistencias } from "@/app/api/asistencias/route";
 import { GET as getSesiones, POST as postSesiones } from "@/app/api/sesiones/route";
 import { GET as getAsistentes } from "@/app/api/sesiones/[id]/asistentes/route";
+import { GET as getExportar } from "@/app/api/sesiones/[id]/exportar/route";
 import { GET as getQr } from "@/app/api/sesiones/[id]/qr/route";
 import {
   RepositorioAsistenciasEnMemoria,
@@ -185,6 +187,80 @@ describe("API REST de asistencia", () => {
       undefined,
     );
     expect(segunda.status).toBe(409);
+  });
+
+  it("exporta el CSV de asistentes y neutraliza fórmulas", async () => {
+    const { sesion } = await crearSesion();
+    const qr = await getQr(
+      peticion(`/api/sesiones/${sesion.id}/qr`, { token: DOCENTE }),
+      contexto(sesion.id),
+    );
+    const { token } = (await qr.json()) as CuerpoQr;
+    const malicioso = "dev.=cmd.estudiante";
+    const registro = await postAsistencias(
+      peticion("/api/asistencias", {
+        metodo: "POST",
+        token: malicioso,
+        cuerpo: { token, lat: 0, lng: 0 },
+      }),
+      undefined,
+    );
+    expect(registro.status).toBe(201);
+
+    const csv = await getExportar(
+      peticion(`/api/sesiones/${sesion.id}/exportar`, { token: DOCENTE }),
+      contexto(sesion.id),
+    );
+    expect(csv.status).toBe(200);
+    expect(csv.headers.get("content-type")).toContain("text/csv");
+    const texto = await csv.text();
+    expect(texto).toContain('"uid"');
+    expect(texto).toContain("'=cmd");
+
+    const ajeno = await getExportar(
+      peticion(`/api/sesiones/${sesion.id}/exportar`, { token: OTRO_DOCENTE }),
+      contexto(sesion.id),
+    );
+    expect(ajeno.status).toBe(404);
+  });
+
+  it("el historial devuelve solo las asistencias del estudiante autenticado", async () => {
+    const { sesion } = await crearSesion();
+    const qr = await getQr(
+      peticion(`/api/sesiones/${sesion.id}/qr`, { token: DOCENTE }),
+      contexto(sesion.id),
+    );
+    const { token } = (await qr.json()) as CuerpoQr;
+    await postAsistencias(
+      peticion("/api/asistencias", {
+        metodo: "POST",
+        token: ESTUDIANTE,
+        cuerpo: { token, lat: 0, lng: 0 },
+      }),
+      undefined,
+    );
+
+    const propias = await getMias(
+      peticion("/api/asistencias/mias", { token: ESTUDIANTE }),
+      undefined,
+    );
+    expect(propias.status).toBe(200);
+    const { asistencias } = (await propias.json()) as {
+      asistencias: { curso: string; sesionId: string }[];
+    };
+    expect(asistencias).toHaveLength(1);
+    expect(asistencias[0]?.sesionId).toBe(sesion.id);
+    expect(asistencias[0]?.curso).toBe("Cálculo I");
+
+    const otras = await getMias(
+      peticion("/api/asistencias/mias", { token: "dev.est2.estudiante" }),
+      undefined,
+    );
+    const cuerpoOtras = (await otras.json()) as { asistencias: unknown[] };
+    expect(cuerpoOtras.asistencias).toHaveLength(0);
+
+    const docente = await getMias(peticion("/api/asistencias/mias", { token: DOCENTE }), undefined);
+    expect(docente.status).toBe(403);
   });
 
   it("integración: docente crea sesión, pide QR, estudiante registra y el docente ve la lista", async () => {

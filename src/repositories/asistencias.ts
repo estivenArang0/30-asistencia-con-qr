@@ -21,10 +21,15 @@ export interface AsistenciaListada extends RegistroAsistencia {
   uid: string;
 }
 
+export interface AsistenciaDeEstudiante extends RegistroAsistencia {
+  sesionId: string;
+}
+
 export interface RepositorioAsistencias {
   obtenerSesion(id: string): Promise<SesionAsistencia | null>;
   registrar(sesionId: string, uid: string, registro: RegistroAsistencia): Promise<void>;
   listar(sesionId: string): Promise<AsistenciaListada[]>;
+  listarPorUid(uid: string): Promise<AsistenciaDeEstudiante[]>;
 }
 
 /** Resuelve la sesión desde el repositorio de sesiones (o desde el mapa local en pruebas). */
@@ -71,6 +76,15 @@ export class RepositorioAsistenciasEnMemoria implements RepositorioAsistencias {
     const deSesion = this.registros.get(sesionId);
     if (!deSesion) return [];
     return [...deSesion.entries()].map(([uid, registro]) => ({ uid, ...registro }));
+  }
+
+  async listarPorUid(uid: string): Promise<AsistenciaDeEstudiante[]> {
+    const resultado: AsistenciaDeEstudiante[] = [];
+    for (const [sesionId, deSesion] of this.registros) {
+      const registro = deSesion.get(uid);
+      if (registro) resultado.push({ sesionId, ...registro });
+    }
+    return resultado.sort((a, b) => b.registradaEn - a.registradaEn);
   }
 
   /** Auxiliar de pruebas: cuántos estudiantes hay registrados en una sesión. */
