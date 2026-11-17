@@ -27,8 +27,24 @@ function origenPermitido(request: Request): boolean {
   }
 }
 
+/** Reconoce AppError incluso si el bundler duplica la clase entre chunks. */
+function esAppError(error: unknown): error is AppError {
+  if (error instanceof AppError) return true;
+  if (typeof error !== "object" || error === null) return false;
+  const candidato = error as {
+    esAppError?: unknown;
+    status?: unknown;
+    message?: unknown;
+  };
+  return (
+    candidato.esAppError === true &&
+    typeof candidato.status === "number" &&
+    typeof candidato.message === "string"
+  );
+}
+
 function traducir(error: unknown): { status: number; cuerpo: CuerpoError } {
-  if (error instanceof AppError) {
+  if (esAppError(error)) {
     return { status: error.status, cuerpo: { error: error.message } };
   }
   if (error instanceof ZodError) {
@@ -77,8 +93,12 @@ export function manejar<Ctx = unknown>(handler: Handler<Ctx>): HandlerExportado<
         // Solo la causa: sin stack, cuerpo, cabeceras, cookies, tokens ni entorno.
         const nombre = error instanceof Error ? error.name : typeof error;
         const codigo =
-          typeof error === "object" && error !== null && "code" in error
-            ? String((error as { code?: unknown }).code ?? "")
+          typeof error === "object" && error !== null
+            ? String(
+                ("code" in error ? (error as { code?: unknown }).code : undefined) ??
+                  ("codigo" in error ? (error as { codigo?: unknown }).codigo : undefined) ??
+                  "",
+              )
             : "";
         const mensaje = String(error instanceof Error ? error.message : error)
           .replace(/\s+/g, " ")
