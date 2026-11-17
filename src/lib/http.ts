@@ -13,6 +13,7 @@ interface CuerpoError {
 }
 
 type Handler<Ctx> = (request: Request, contexto: Ctx) => Promise<Response>;
+type HandlerExportado<Ctx> = (request: Request, contexto?: Ctx) => Promise<Response>;
 
 const METODOS_CON_ORIGEN = new Set(["POST", "PUT", "DELETE"]);
 
@@ -58,14 +59,14 @@ function traducir(error: unknown): { status: number; cuerpo: CuerpoError } {
 }
 
 /** Envuelve un handler: traduce errores y sella la respuesta con no-store. */
-export function manejar<Ctx = undefined>(handler: Handler<Ctx>): Handler<Ctx> {
+export function manejar<Ctx = unknown>(handler: Handler<Ctx>): HandlerExportado<Ctx> {
   return async (request, contexto) => {
     const idPeticion = crypto.randomUUID().slice(0, 8);
     try {
       if (METODOS_CON_ORIGEN.has(request.method) && !origenPermitido(request)) {
         throw new AppError(403, "ORIGEN", "El origen de la petición no es válido.");
       }
-      const respuesta = await handler(request, contexto);
+      const respuesta = await handler(request, contexto as Ctx);
       respuesta.headers.set("Cache-Control", "no-store");
       return respuesta;
     } catch (error) {

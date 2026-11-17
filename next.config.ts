@@ -7,8 +7,9 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve("."),
   },
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Desactivado: `cacheComponents` no admite `export const runtime = "nodejs"`
+  // en los Route Handlers, y la especificación exige runtime Node explícito.
+  cacheComponents: false,
 };
 
 export default nextConfig;
