@@ -1,5 +1,6 @@
 /** Contrato del repositorio de asistencias + implementación en memoria. */
 import { AppError } from "@/lib/errores";
+import { repositorioSesiones } from "@/repositories/sesiones";
 
 export interface SesionAsistencia {
   id: string;
@@ -16,22 +17,41 @@ export interface RegistroAsistencia {
   registradaEn: number;
 }
 
+export interface AsistenciaListada extends RegistroAsistencia {
+  uid: string;
+}
+
 export interface RepositorioAsistencias {
   obtenerSesion(id: string): Promise<SesionAsistencia | null>;
   registrar(sesionId: string, uid: string, registro: RegistroAsistencia): Promise<void>;
+  listar(sesionId: string): Promise<AsistenciaListada[]>;
 }
+
+/** Resuelve la sesión desde el repositorio de sesiones (o desde el mapa local en pruebas). */
+type ProveedorSesiones = (
+  id: string,
+) => Promise<SesionAsistencia | null> | SesionAsistencia | null;
+
+const desdeSesiones: ProveedorSesiones = (id) => repositorioSesiones().obtener(id);
 
 /** Implementación en memoria: pruebas y desarrollo. No persiste nada. */
 export class RepositorioAsistenciasEnMemoria implements RepositorioAsistencias {
-  private readonly sesiones = new Map<string, SesionAsistencia>();
+  private readonly sesiones: Map<string, SesionAsistencia>;
   private readonly registros = new Map<string, Map<string, RegistroAsistencia>>();
+  private readonly proveedor: ProveedorSesiones;
 
-  constructor(sesiones: readonly SesionAsistencia[] = []) {
-    for (const sesion of sesiones) this.sesiones.set(sesion.id, sesion);
+  constructor(
+    sesiones: readonly SesionAsistencia[] = [],
+    proveedor: ProveedorSesiones = desdeSesiones,
+  ) {
+    this.sesiones = new Map(sesiones.map((sesion) => [sesion.id, sesion]));
+    this.proveedor = proveedor;
   }
 
   async obtenerSesion(id: string): Promise<SesionAsistencia | null> {
-    return this.sesiones.get(id) ?? null;
+    const local = this.sesiones.get(id);
+    if (local) return local;
+    return await this.proveedor(id);
   }
 
   async registrar(
@@ -47,8 +67,34 @@ export class RepositorioAsistenciasEnMemoria implements RepositorioAsistencias {
     this.registros.set(sesionId, deSesion);
   }
 
+  async listar(sesionId: string): Promise<AsistenciaListada[]> {
+    const deSesion = this.registros.get(sesionId);
+    if (!deSesion) return [];
+    return [...deSesion.entries()].map(([uid, registro]) => ({ uid, ...registro }));
+  }
+
   /** Auxiliar de pruebas: cuántos estudiantes hay registrados en una sesión. */
   contarRegistros(sesionId: string): number {
     return this.registros.get(sesionId)?.size ?? 0;
   }
+}
+
+/**
+ * Singleton en `globalThis`: sobrevive al hot reload de Next en desarrollo.
+ * El proveedor por defecto consulta el repositorio de sesiones vigente.
+ */
+type EstadoRepositorios = { reposAsistencias?: RepositorioAsistenciasEnMemoria };
+
+const ambito = globalThis as typeof globalThis & { __qrRepositorios?: EstadoRepositorios };
+
+export function repositorioAsistencias(): RepositorioAsistenciasEnMemoria {
+  ambito.__qrRepositorios ??= {};
+  ambito.__qrRepositorios.reposAsistencias ??= new RepositorioAsistenciasEnMemoria();
+  return ambito.__qrRepositorios.reposAsistencias;
+}
+
+/** Inyección para pruebas: reemplaza el singleton por una instancia limpia. */
+export function reemplazarRepositorioAsistencias(repo: RepositorioAsistenciasEnMemoria): void {
+  ambito.__qrRepositorios ??= {};
+  ambito.__qrRepositorios.reposAsistencias = repo;
 }
