@@ -9,6 +9,8 @@ export interface DatosAsistencia {
   lat: number;
   lng: number;
   uid: string;
+  /** Opcional: si la ruta lo envía, debe coincidir con el `sesionId` del token. */
+  sesionId?: string;
 }
 
 export interface DependenciasAsistencia {
@@ -25,12 +27,23 @@ export async function registrarAsistencia(
   datos: DatosAsistencia,
   deps: DependenciasAsistencia,
 ): Promise<ResultadoAsistencia> {
-  const { token, lat, lng, uid } = datos;
+  const { token, lat, lng, uid, sesionId: sesionSolicitada } = datos;
   const { repo, secreto, ahoraMs } = deps;
 
   if (!uid) throw new AppError(400, "UID", "Falta el identificador del estudiante.");
 
   const { sesionId } = verificarToken(token, secreto, ahoraMs);
+
+  // El `sesionId` válido es el que va firmado dentro del token. Si la ruta
+  // también recibe un id, se exige que coincida (400) para que nadie pueda
+  // consultar una sesión distinta a la del QR presentado.
+  if (sesionSolicitada !== undefined && sesionSolicitada !== sesionId) {
+    throw new AppError(
+      400,
+      "SESION_NO_COINCIDE",
+      "La sesión del código QR no coincide con la sesión solicitada.",
+    );
+  }
 
   const sesion = await repo.obtenerSesion(sesionId);
   if (!sesion) {

@@ -3,8 +3,8 @@
  *
  * Decisión de intervalo: el documento mezcla "30 s" (RF-02) y "minuto ±1" (§9.4).
  * Se usa un intervalo de 30 s (RF-02, la regla operativa más concreta) con una
- * tolerancia de ±1 intervalo, que cubre el "minuto ±1" de §9.4 sin aceptar
- * códigos más antiguos.
+ * tolerancia de ±2 intervalos, es decir ±60 s: eso cubre el "minuto ±1" de §9.4
+ * sin aceptar códigos de 90 s o más.
  *
  * El secreto se recibe por parámetro; este módulo nunca lee variables de entorno.
  */
@@ -12,7 +12,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { AppError } from "@/lib/errores";
 
 export const DURACION_INTERVALO_MS = 30_000;
-export const TOLERANCIA_INTERVALOS = 1;
+export const TOLERANCIA_INTERVALOS = 2;
 
 export function intervaloDe(ahoraMs: number): number {
   return Math.floor(ahoraMs / DURACION_INTERVALO_MS);

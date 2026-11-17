@@ -64,6 +64,37 @@ describe("registrarAsistencia", () => {
     expect(repo.contarRegistros(SESION.id)).toBe(0);
   });
 
+  it("tras un 422 por distancia, el mismo uid puede registrarse dentro del radio", async () => {
+    const repo = crearRepo();
+    const token = generarToken(SESION.id, SECRETO, AHORA);
+    const deps = { repo, secreto: SECRETO, ahoraMs: AHORA };
+
+    const fuera = await capturar(
+      registrarAsistencia({ token, ...FUERA, uid: "u-1" }, deps),
+    );
+    expect(fuera.status).toBe(422);
+
+    const dentro = await registrarAsistencia({ token, ...DENTRO, uid: "u-1" }, deps);
+    expect(dentro.distanciaM).toBeLessThan(SESION.radioM);
+    expect(repo.contarRegistros(SESION.id)).toBe(1);
+  });
+
+  it("rechaza con 400 un sesionId explícito que no coincide con el del token", async () => {
+    const repo = crearRepo();
+    const token = generarToken(SESION.id, SECRETO, AHORA);
+
+    const error = await capturar(
+      registrarAsistencia(
+        { token, ...DENTRO, uid: "u-1", sesionId: "sesion-otra" },
+        { repo, secreto: SECRETO, ahoraMs: AHORA },
+      ),
+    );
+
+    expect(error.status).toBe(400);
+    expect(error.codigo).toBe("SESION_NO_COINCIDE");
+    expect(repo.contarRegistros(SESION.id)).toBe(0);
+  });
+
   it("criterio 3: el segundo registro del mismo uid da 409 y queda uno solo", async () => {
     const repo = crearRepo();
     const token = generarToken(SESION.id, SECRETO, AHORA);

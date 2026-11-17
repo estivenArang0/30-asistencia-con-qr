@@ -48,8 +48,18 @@ describe("token QR firmado", () => {
     expect(verificarToken(token, SECRETO, AHORA)).toEqual({ sesionId: "sesion-1" });
   });
 
-  it("rechaza un token dos intervalos adelantado (+2) con 410", () => {
+  it("acepta un token de hace 60 s (−2 intervalos)", () => {
+    const token = generarToken("sesion-1", SECRETO, AHORA - 60_000);
+    expect(verificarToken(token, SECRETO, AHORA)).toEqual({ sesionId: "sesion-1" });
+  });
+
+  it("acepta un token futuro dentro de la tolerancia (+2 intervalos)", () => {
     const token = generarToken("sesion-1", SECRETO, AHORA + 60_000);
+    expect(verificarToken(token, SECRETO, AHORA)).toEqual({ sesionId: "sesion-1" });
+  });
+
+  it("rechaza un token de hace 90 s (−3 intervalos) con 410", () => {
+    const token = generarToken("sesion-1", SECRETO, AHORA - 90_000);
     const error = capturar(() => verificarToken(token, SECRETO, AHORA));
     expect(error.status).toBe(410);
     expect(error.codigo).toBe("VENCIDO");
