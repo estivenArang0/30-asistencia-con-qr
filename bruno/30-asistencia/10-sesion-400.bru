@@ -1,0 +1,27 @@
+meta {
+  name: 10 sesión 400 (campo desconocido)
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/sesiones
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenDocente}}
+}
+
+body:json {
+  {
+    "curso": "Cálculo I",
+    "lat": 6.2442,
+    "lng": -75.5812,
+    "radioM": 100,
+    "inicia": "2026-11-16T13:00:00.000Z",
+    "termina": "2026-11-16T15:00:00.000Z",
+    "docenteUid": "intruso"
+  }
+}

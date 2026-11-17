@@ -1,0 +1,23 @@
+meta {
+  name: 03 asistencia exitosa (estudiante)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/asistencias
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenEstudiante}}
+}
+
+body:json {
+  {
+    "token": "{{tokenQr}}",
+    "lat": 6.2442,
+    "lng": -75.5812
+  }
+}

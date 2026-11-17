@@ -1,0 +1,14 @@
+meta {
+  name: 07 exportar CSV
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/sesiones/{{sesionId}}/exportar
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenDocente}}
+}

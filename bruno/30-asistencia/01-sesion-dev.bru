@@ -1,0 +1,30 @@
+meta {
+  name: 01 sesion dev (docente crea)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/sesiones
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenDocente}}
+}
+
+body:json {
+  {
+    "curso": "Cálculo I",
+    "lat": 6.2442,
+    "lng": -75.5812,
+    "radioM": 100,
+    "inicia": "2026-11-16T13:00:00.000Z",
+    "termina": "2026-11-16T15:00:00.000Z"
+  }
+}
+
+script:post-response {
+  bru.setVar("sesionId", res.body.id);
+}

@@ -1,0 +1,14 @@
+meta {
+  name: 05 asistentes 403 (estudiante)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/sesiones/{{sesionId}}/asistentes
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenEstudiante}}
+}

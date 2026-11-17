@@ -1,0 +1,363 @@
+openapi: 3.0.3
+info:
+  title: Control de asistencia con QR y ubicación
+  version: 1.0.0
+  description: |
+    API REST del proyecto 30. Autenticación de desarrollo con `Authorization: Bearer dev.<uid>.<rol>`
+    (solo con `AUTH_DEV=1` y fuera de producción). El `uid` y el rol salen del token, nunca del cuerpo
+    ni de la URL. No hay rate limiting (429) implementado; se documenta el resto de códigos reales.
+servers:
+  - url: http://localhost:3000
+security:
+  - bearerAuth: []
+paths:
+  /api/auth/yo:
+    get:
+      summary: Usuario autenticado
+      responses:
+        "200":
+          description: Usuario del token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  usuario:
+                    $ref: "#/components/schemas/Usuario"
+        "401":
+          $ref: "#/components/responses/NoAutenticado"
+  /api/sesiones:
+    get:
+      summary: Sesiones del docente autenticado
+      responses:
+        "200":
+          description: Lista de sesiones propias
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sesiones:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Sesion"
+        "401":
+          $ref: "#/components/responses/NoAutenticado"
+        "403":
+          $ref: "#/components/responses/SinPermiso"
+    post:
+      summary: Abrir una sesión (docente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SesionEntrada"
+      responses:
+        "201":
+          description: Sesión creada (docenteUid sale del token)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sesion"
+        "400":
+          $ref: "#/components/responses/Validacion"
+        "401":
+          $ref: "#/components/responses/NoAutenticado"
+        "403":
+          $ref: "#/components/responses/SinPermiso"
+        "500":
+          $ref: "#/components/responses/Interno"
+  /api/sesiones/{id}/qr:
+    parameters:
+      - $ref: "#/components/parameters/IdSesion"
+    get:
+      summary: Token QR firmado vigente (solo el docente dueño)
+      responses:
+        "200":
+          description: Token y momento de expiración (epoch ms)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expiraEnMs:
+                    type: integer
+                    format: int64
+        "401":
+          $ref: "#/components/responses/NoAutenticado"
+        "403":
+          $ref: "#/components/responses/SinPermiso"
+        "404":
+          $ref: "#/components/responses/NoEncontrado"
+  /api/sesiones/{id}/asistentes:
+    parameters:
+      - $ref: "#/components/parameters/IdSesion"
+    get:
+      summary: Asistentes de la sesión (docente dueño; estudiante 403)
+      responses:
+        "200":
+          description: Lista de asistentes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  asistentes:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Asistente"
+        "401":
+          $ref: "#/components/responses/NoAutenticado"
+        "403":
+          $ref: "#/components/responses/SinPermiso"
+        "404":
+          $ref: "#/components/responses/NoEncontrado"
+  /api/sesiones/{id}/exportar:
+    parameters:
+      - $ref: "#/components/parameters/IdSesion"
+    get:
+      summary: Exporta la asistencia en CSV (RF-06)
+      responses:
+        "200":
+          description: CSV con uid, distancia y fecha; las fórmulas se prefijan con apóstrofo
+          content:
+            text/csv:
+              schema:
+                type: string
+        "401":
+          $ref: "#/components/responses/NoAutenticado"
+        "403":
+          $ref: "#/components/responses/SinPermiso"
+        "404":
+          $ref: "#/components/responses/NoEncontrado"
+  /api/asistencias:
+    post:
+      summary: Registrar asistencia (estudiante)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AsistenciaEntrada"
+      responses:
+        "201":
+          description: Asistencia registrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  distanciaM:
+                    type: number
+                  registradaEn:
+                    type: integer
+                    format: int64
+        "400":
+          $ref: "#/components/responses/Validacion"
+        "401":
+          $ref: "#/components/responses/NoAutenticado"
+        "403":
+          $ref: "#/components/responses/SinPermiso"
+        "404":
+          $ref: "#/components/responses/NoEncontrado"
+        "409":
+          description: Registro duplicado o sesión cerrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "410":
+          description: Token vencido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Fuera del radio permitido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/asistencias/mias:
+    get:
+      summary: Historial del estudiante autenticado
+      responses:
+        "200":
+          description: Asistencias propias
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  asistencias:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AsistenciaHistorial"
+        "401":
+          $ref: "#/components/responses/NoAutenticado"
+        "403":
+          $ref: "#/components/responses/SinPermiso"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: "`dev.<uid>.<rol>` con AUTH_DEV=1 (solo desarrollo)"
+  parameters:
+    IdSesion:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    Usuario:
+      type: object
+      required: [uid, correo, rol]
+      properties:
+        uid:
+          type: string
+        correo:
+          type: string
+          format: email
+        rol:
+          type: string
+          enum: [docente, estudiante]
+    Sesion:
+      type: object
+      required: [id, docenteUid, curso, lat, lng, radioM, inicia, termina]
+      properties:
+        id:
+          type: string
+        docenteUid:
+          type: string
+        curso:
+          type: string
+        lat:
+          type: number
+        lng:
+          type: number
+        radioM:
+          type: number
+        inicia:
+          type: string
+          format: date-time
+        termina:
+          type: string
+          format: date-time
+    SesionEntrada:
+      type: object
+      additionalProperties: false
+      required: [curso, lat, lng, radioM, inicia, termina]
+      properties:
+        curso:
+          type: string
+          minLength: 1
+        lat:
+          type: number
+          minimum: -90
+          maximum: 90
+        lng:
+          type: number
+          minimum: -180
+          maximum: 180
+        radioM:
+          type: number
+          exclusiveMinimum: true
+          minimum: 0
+        inicia:
+          type: string
+          format: date-time
+        termina:
+          type: string
+          format: date-time
+    AsistenciaEntrada:
+      type: object
+      additionalProperties: false
+      required: [token, lat, lng]
+      properties:
+        token:
+          type: string
+          minLength: 1
+        lat:
+          type: number
+          minimum: -90
+          maximum: 90
+        lng:
+          type: number
+          minimum: -180
+          maximum: 180
+    Asistente:
+      type: object
+      required: [uid, distanciaM, registradaEn]
+      properties:
+        uid:
+          type: string
+        distanciaM:
+          type: number
+        registradaEn:
+          type: integer
+          format: int64
+    AsistenciaHistorial:
+      type: object
+      required: [sesionId, curso, distanciaM, registradaEn]
+      properties:
+        sesionId:
+          type: string
+        curso:
+          type: string
+        distanciaM:
+          type: number
+        registradaEn:
+          type: integer
+          format: int64
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+        detalles:
+          type: array
+          items:
+            type: object
+            required: [campo, mensaje]
+            properties:
+              campo:
+                type: string
+              mensaje:
+                type: string
+  responses:
+    Validacion:
+      description: Datos inválidos (Zod, modo estricto)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NoAutenticado:
+      description: Falta el token o no es válido
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    SinPermiso:
+      description: Rol insuficiente
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NoEncontrado:
+      description: No existe o es de otro docente
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Interno:
+      description: Error interno sin detalles
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"

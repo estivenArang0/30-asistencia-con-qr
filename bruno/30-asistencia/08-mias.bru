@@ -1,0 +1,14 @@
+meta {
+  name: 08 mis asistencias (estudiante)
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/asistencias/mias
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenEstudiante}}
+}

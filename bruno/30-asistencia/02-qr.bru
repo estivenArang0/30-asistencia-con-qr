@@ -1,0 +1,18 @@
+meta {
+  name: 02 qr (docente dueño)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/sesiones/{{sesionId}}/qr
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenDocente}}
+}
+
+script:post-response {
+  bru.setVar("tokenQr", res.body.token);
+}
