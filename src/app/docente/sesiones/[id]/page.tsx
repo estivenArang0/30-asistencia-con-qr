@@ -9,6 +9,7 @@ import { useCountdown } from "@/hooks/useCountdown";
 import { usePaginaVisible } from "@/hooks/usePaginaVisible";
 import { usePolling } from "@/hooks/usePolling";
 import { ErrorApi, leerToken, pedir } from "@/lib/cliente";
+import { urlAsistencia } from "@/lib/url-asistencia";
 
 interface DatosQr {
   token: string;
@@ -22,7 +23,7 @@ export default function SesionPage() {
   const restantes = useCountdown(30, visible);
 
   const [imagen, setImagen] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [enlace, setEnlace] = useState<string | null>(null);
   const [errorQr, setErrorQr] = useState<string | null>(null);
   const [asistentes, setAsistentes] = useState<Asistente[]>([]);
   const [estadoLista, setEstadoLista] = useState<EstadoLista>("cargando");
@@ -30,8 +31,9 @@ export default function SesionPage() {
   const cargarQr = useCallback(async () => {
     try {
       const datos = await pedir<DatosQr>(`/api/sesiones/${id}/qr`);
-      setToken(datos.token);
-      setImagen(await toDataURL(datos.token, { margin: 1, width: 280 }));
+      const url = urlAsistencia(window.location.origin, datos.token);
+      setEnlace(url);
+      setImagen(await toDataURL(url, { margin: 1, width: 280 }));
       setErrorQr(null);
     } catch (error) {
       setErrorQr(error instanceof ErrorApi ? error.message : "No se pudo cargar el código QR.");
@@ -97,10 +99,10 @@ export default function SesionPage() {
             <p className="contador" aria-live="polite">
               Se renueva en {restantes} s
             </p>
-            {token ? (
+            {enlace ? (
               <p>
                 Enlace de respaldo:{" "}
-                <Link href={`/asistir/${token}`}>abrir la página de asistencia</Link>
+                <Link href={enlace}>abrir la página de asistencia</Link>
               </p>
             ) : null}
           </>
