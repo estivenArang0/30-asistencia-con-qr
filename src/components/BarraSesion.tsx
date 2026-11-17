@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { borrarToken, pedir } from "@/lib/cliente";
 
 interface Usuario {
-  uid: string;
+  correo: string;
   rol: string;
 }
 
@@ -52,7 +52,7 @@ export function BarraSesion() {
   return (
     <span>
       <span aria-hidden="true">· </span>
-      {usuario.uid} ({usuario.rol}){" "}
+      {usuario.correo ? `${usuario.correo} (${usuario.rol})` : usuario.rol}{" "}
       <button type="button" onClick={() => void salir()}>
         Salir
       </button>

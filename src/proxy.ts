@@ -13,11 +13,13 @@ export default function proxy(request: NextRequest): NextResponse {
   if (request.cookies.has("sesion")) return NextResponse.next();
 
   const url = request.nextUrl.clone();
+  const destino = url.pathname + url.search;
   url.pathname = "/login";
   url.search = "";
+  if (destino !== "/") url.searchParams.set("siguiente", destino);
   return NextResponse.redirect(url);
 }
 
 export const config = {
-  matcher: ["/", "/historial", "/docente/:path*"],
+  matcher: ["/", "/historial", "/docente/:path*", "/asistir/:path*"],
 };

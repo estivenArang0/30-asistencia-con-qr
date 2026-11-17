@@ -1,10 +1,10 @@
 "use client";
 
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { guardarToken } from "@/lib/cliente";
 import { authCliente, firebaseWebConfigurado } from "@/lib/firebase-client";
+import { destinoSeguro } from "@/lib/redireccion";
 
 const MENSAJES: Record<string, string> = {
   "auth/invalid-credential": "Correo o contraseña incorrectos.",
@@ -14,7 +14,6 @@ const MENSAJES: Record<string, string> = {
 };
 
 export default function LoginPage() {
-  const router = useRouter();
   const configurado = firebaseWebConfigurado();
 
   const [correo, setCorreo] = useState("");
@@ -41,8 +40,8 @@ export default function LoginPage() {
         const cuerpo = (await respuesta.json().catch(() => ({}))) as { error?: string };
         throw new Error(cuerpo.error ?? "No se pudo crear la sesión.");
       }
-      router.push("/");
-      router.refresh();
+      const destino = destinoSeguro(new URLSearchParams(window.location.search).get("siguiente"));
+      window.location.replace(destino);
     } catch (error) {
       const codigo = (error as { code?: string }).code ?? "";
       setMensaje(
@@ -58,8 +57,8 @@ export default function LoginPage() {
     const limpio = uidDev.trim().replaceAll(" ", "");
     if (!limpio) return;
     guardarToken(`dev.${limpio}.${rolDev}`);
-    router.push("/");
-    router.refresh();
+    const destino = destinoSeguro(new URLSearchParams(window.location.search).get("siguiente"));
+    window.location.replace(destino);
   }
 
   return (

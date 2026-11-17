@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { BarraSesion } from "@/components/BarraSesion";
 import { FormularioAsistencia } from "@/components/FormularioAsistencia";
 import { FormularioNuevaSesion } from "@/components/FormularioNuevaSesion";
 import { ListaAsistentes } from "@/components/ListaAsistentes";
@@ -24,6 +25,43 @@ describe("formulario de nueva sesión", () => {
 
     expect(await screen.findByText("El curso es obligatorio.")).toBeInTheDocument();
     expect(screen.getByLabelText("Curso")).toHaveAttribute("aria-invalid", "true");
+  });
+});
+
+describe("barra de sesi��n", () => {
+  it("muestra el correo y nunca el uid", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify({
+            usuario: { uid: "uid-secreto-123", correo: "docente@prueba.com", rol: "docente" },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      ),
+    );
+
+    render(<BarraSesion />);
+
+    expect(await screen.findByText(/docente@prueba\.com \(docente\)/)).toBeInTheDocument();
+    expect(screen.queryByText(/uid-secreto-123/)).toBeNull();
+  });
+
+  it("muestra solo el rol si no hay correo", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(JSON.stringify({ usuario: { correo: "", rol: "estudiante" } }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+
+    render(<BarraSesion />);
+
+    expect(await screen.findByText("estudiante")).toBeInTheDocument();
   });
 });
 
