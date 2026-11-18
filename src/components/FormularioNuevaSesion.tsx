@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ZodError } from "zod";
 import { pedir } from "@/lib/cliente";
+import { mensajePrecision } from "@/lib/precision";
 import { esquemaSesion } from "@/schemas/asistencia";
 
 interface Errores {
@@ -22,10 +23,13 @@ export function FormularioNuevaSesion() {
   });
   const [errores, setErrores] = useState<Errores>({});
   const [aviso, setAviso] = useState<string | null>(null);
+  const [precision, setPrecision] = useState<number | null>(null);
   const [enviando, setEnviando] = useState(false);
 
   function cambiar(campo: keyof typeof valores, valor: string) {
     setValores((actual) => ({ ...actual, [campo]: valor }));
+    // La precisión capturada deja de aplicar si se corrigen las coordenadas a mano.
+    if (campo === "lat" || campo === "lng") setPrecision(null);
   }
 
   function usarMiUbicacion() {
@@ -38,10 +42,11 @@ export function FormularioNuevaSesion() {
       (posicion) => {
         cambiar("lat", posicion.coords.latitude.toFixed(6));
         cambiar("lng", posicion.coords.longitude.toFixed(6));
+        setPrecision(posicion.coords.accuracy);
         setAviso("Ubicación tomada del navegador.");
       },
       () => setAviso("No se pudo obtener la ubicación. Escribe las coordenadas a mano."),
-      { enableHighAccuracy: true, timeout: 8000 },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     );
   }
 
@@ -87,6 +92,8 @@ export function FormularioNuevaSesion() {
     return errores[campo] ?? null;
   }
 
+  const avisoPrecision = mensajePrecision(precision);
+
   return (
     <form className="tarjeta" onSubmit={enviar} noValidate aria-describedby="aviso-formulario">
       <div className="campo">
@@ -115,6 +122,16 @@ export function FormularioNuevaSesion() {
         <button className="boton boton--secundario" type="button" onClick={usarMiUbicacion}>
           Usar mi ubicación
         </button>
+        {precision !== null ? (
+          <p>
+            Latitud: {valores.lat} · Longitud: {valores.lng} · Precisión: ±{Math.round(precision)} m
+          </p>
+        ) : null}
+        {avisoPrecision ? (
+          <p className="aviso aviso--error" role="alert">
+            {avisoPrecision}
+          </p>
+        ) : null}
         <div className="grid grid--dos">
           <div className="campo">
             <label htmlFor="lat">Latitud</label>

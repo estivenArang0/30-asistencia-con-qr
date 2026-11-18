@@ -21,6 +21,9 @@ interface DatosQr {
 interface DatosSesion {
   id: string;
   curso: string;
+  lat: number;
+  lng: number;
+  radioM: number;
   inicia: string;
   termina: string;
 }
@@ -121,6 +124,12 @@ export default function SesionPage() {
           </p>
           <p>
             <strong>Estado:</strong> {ETIQUETA_ESTADO[estadoSesion(sesion.inicia, sesion.termina, ahoraMs)]}
+          </p>
+          <p>
+            <strong>Ubicación:</strong> {sesion.lat.toFixed(6)}, {sesion.lng.toFixed(6)}
+          </p>
+          <p>
+            <strong>Radio:</strong> {sesion.radioM} m
           </p>
           <p>
             Inicia: <time dateTime={sesion.inicia}>{formatearFechaHora(sesion.inicia)}</time>

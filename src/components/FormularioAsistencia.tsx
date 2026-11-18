@@ -42,7 +42,7 @@ export function FormularioAsistencia({ token }: Props) {
         setEstado("error");
         setMensaje("No diste permiso de ubicación o falló el GPS. Actívalo e inténtalo otra vez.");
       },
-      { enableHighAccuracy: true, timeout: 8000 },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     );
   }
 
