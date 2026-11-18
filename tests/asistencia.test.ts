@@ -61,6 +61,7 @@ describe("registrarAsistencia", () => {
     expect(error.codigo).toBe("FUERA_DE_RADIO");
     expect(error.message).toContain("100 m");
     expect(error.message).toContain("500 m");
+    expect(error.message).toContain("Tus coordenadas: 0.004500, 0.000000");
     expect(repo.contarRegistros(SESION.id)).toBe(0);
   });
 

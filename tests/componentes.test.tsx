@@ -88,7 +88,7 @@ describe("página de asistir", () => {
     const usuario = userEvent.setup();
     render(<FormularioAsistencia token="token-de-prueba" />);
 
-    await usuario.click(screen.getByRole("button", { name: "Usar mi ubicación y registrar" }));
+    await usuario.click(screen.getByRole("button", { name: "Usar mi ubicación" }));
 
     expect(await screen.findByText(/no permite obtener la ubicación/i)).toBeInTheDocument();
   });
@@ -113,7 +113,8 @@ describe("página de asistir", () => {
     );
 
     render(<FormularioAsistencia token="token-de-prueba" />);
-    await usuario.click(screen.getByRole("button", { name: "Usar mi ubicación y registrar" }));
+    await usuario.click(screen.getByRole("button", { name: "Usar mi ubicación" }));
+    await usuario.click(await screen.findByRole("button", { name: "Registrar asistencia" }));
 
     expect(await screen.findByText(/500 m del aula/)).toBeInTheDocument();
     expect(screen.getByText(/100 m/)).toBeInTheDocument();

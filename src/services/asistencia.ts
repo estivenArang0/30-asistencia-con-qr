@@ -59,7 +59,7 @@ export async function registrarAsistencia(
     throw new AppError(
       422,
       "FUERA_DE_RADIO",
-      `Estás a ${Math.round(distanciaM)} m del aula y el radio permitido es ${Math.round(sesion.radioM)} m.`,
+      `Estás a ${Math.round(distanciaM)} m del aula y el radio permitido es ${Math.round(sesion.radioM)} m. Tus coordenadas: ${lat.toFixed(6)}, ${lng.toFixed(6)}.`,
     );
   }
 

@@ -11,6 +11,7 @@ import { usePolling } from "@/hooks/usePolling";
 import { ErrorApi, leerToken, pedir } from "@/lib/cliente";
 import { ETIQUETA_ESTADO, estadoSesion } from "@/lib/estado-sesion";
 import { formatearFechaHora } from "@/lib/fechas";
+import { urlMapa } from "@/lib/mapa";
 import { urlAsistencia } from "@/lib/url-asistencia";
 
 interface DatosQr {
@@ -126,7 +127,14 @@ export default function SesionPage() {
             <strong>Estado:</strong> {ETIQUETA_ESTADO[estadoSesion(sesion.inicia, sesion.termina, ahoraMs)]}
           </p>
           <p>
-            <strong>Ubicación:</strong> {sesion.lat.toFixed(6)}, {sesion.lng.toFixed(6)}
+            <strong>Ubicación:</strong> {sesion.lat.toFixed(6)}, {sesion.lng.toFixed(6)}{" "}
+            <a
+              href={urlMapa(sesion.lat, sesion.lng)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Ver en el mapa
+            </a>
           </p>
           <p>
             <strong>Radio:</strong> {sesion.radioM} m

@@ -128,6 +128,28 @@ describe("API REST de asistencia", () => {
     expect(respuesta.status).toBe(400);
   });
 
+  it("400 en POST /api/asistencias con lat/lng fuera de rango", async () => {
+    const latInvalida = await postAsistencias(
+      peticion("/api/asistencias", {
+        metodo: "POST",
+        token: ESTUDIANTE,
+        cuerpo: { token: "cualquiera", lat: 91, lng: 0 },
+      }),
+      undefined,
+    );
+    expect(latInvalida.status).toBe(400);
+
+    const lngInvalida = await postAsistencias(
+      peticion("/api/asistencias", {
+        metodo: "POST",
+        token: ESTUDIANTE,
+        cuerpo: { token: "cualquiera", lat: 0, lng: 181 },
+      }),
+      undefined,
+    );
+    expect(lngInvalida.status).toBe(400);
+  });
+
   it("criterio 4: el estudiante no puede ver la lista de asistentes (403)", async () => {
     const { sesion } = await crearSesion();
     const respuesta = await getAsistentes(

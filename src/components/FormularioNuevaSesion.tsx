@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ZodError } from "zod";
 import { pedir } from "@/lib/cliente";
+import { urlMapa } from "@/lib/mapa";
 import { mensajePrecision } from "@/lib/precision";
 import { esquemaSesion } from "@/schemas/asistencia";
 
@@ -45,7 +46,10 @@ export function FormularioNuevaSesion() {
         setPrecision(posicion.coords.accuracy);
         setAviso("Ubicación tomada del navegador.");
       },
-      () => setAviso("No se pudo obtener la ubicación. Escribe las coordenadas a mano."),
+      (error) =>
+        setAviso(
+          `No se pudo obtener la ubicación (${error.code}: ${error.message || "sin detalle"}). Escribe las coordenadas a mano.`,
+        ),
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     );
   }
@@ -124,7 +128,14 @@ export function FormularioNuevaSesion() {
         </button>
         {precision !== null ? (
           <p>
-            Latitud: {valores.lat} · Longitud: {valores.lng} · Precisión: ±{Math.round(precision)} m
+            Latitud: {valores.lat} · Longitud: {valores.lng} · Precisión: ±{Math.round(precision)} m{" "}
+            <a
+              href={urlMapa(Number(valores.lat), Number(valores.lng))}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Ver en el mapa
+            </a>
           </p>
         ) : null}
         {avisoPrecision ? (
