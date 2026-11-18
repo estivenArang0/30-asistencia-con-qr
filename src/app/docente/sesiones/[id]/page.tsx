@@ -3,17 +3,26 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { toDataURL } from "qrcode";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ListaAsistentes, type Asistente, type EstadoLista } from "@/components/ListaAsistentes";
 import { useCountdown } from "@/hooks/useCountdown";
 import { usePaginaVisible } from "@/hooks/usePaginaVisible";
 import { usePolling } from "@/hooks/usePolling";
 import { ErrorApi, leerToken, pedir } from "@/lib/cliente";
+import { ETIQUETA_ESTADO, estadoSesion } from "@/lib/estado-sesion";
+import { formatearFechaHora } from "@/lib/fechas";
 import { urlAsistencia } from "@/lib/url-asistencia";
 
 interface DatosQr {
   token: string;
   expiraEnMs: number;
+}
+
+interface DatosSesion {
+  id: string;
+  curso: string;
+  inicia: string;
+  termina: string;
 }
 
 export default function SesionPage() {
@@ -27,6 +36,29 @@ export default function SesionPage() {
   const [errorQr, setErrorQr] = useState<string | null>(null);
   const [asistentes, setAsistentes] = useState<Asistente[]>([]);
   const [estadoLista, setEstadoLista] = useState<EstadoLista>("cargando");
+  const [sesion, setSesion] = useState<DatosSesion | null>(null);
+  const [ahoraMs, setAhoraMs] = useState(0);
+
+  useEffect(() => {
+    const actualizar = () => setAhoraMs(Date.now());
+    actualizar();
+    const intervalo = window.setInterval(actualizar, 30_000);
+    return () => window.clearInterval(intervalo);
+  }, []);
+
+  useEffect(() => {
+    let vivo = true;
+    pedir<{ sesiones: DatosSesion[] }>("/api/sesiones")
+      .then((datos) => {
+        if (vivo) setSesion(datos.sesiones.find((item) => item.id === id) ?? null);
+      })
+      .catch(() => {
+        if (vivo) setSesion(null);
+      });
+    return () => {
+      vivo = false;
+    };
+  }, [id]);
 
   const cargarQr = useCallback(async () => {
     try {
@@ -81,6 +113,23 @@ export default function SesionPage() {
         Muestra este QR al curso. Cambia cada 30 s y la lista se actualiza sola.
         {visible ? "" : " Actualización pausada: la pestaña está en segundo plano."}
       </p>
+
+      {sesion ? (
+        <div className="tarjeta">
+          <p>
+            <strong>Curso:</strong> {sesion.curso}
+          </p>
+          <p>
+            <strong>Estado:</strong> {ETIQUETA_ESTADO[estadoSesion(sesion.inicia, sesion.termina, ahoraMs)]}
+          </p>
+          <p>
+            Inicia: <time dateTime={sesion.inicia}>{formatearFechaHora(sesion.inicia)}</time>
+          </p>
+          <p>
+            Termina: <time dateTime={sesion.termina}>{formatearFechaHora(sesion.termina)}</time>
+          </p>
+        </div>
+      ) : null}
 
       <div className="tarjeta qr" aria-busy={!imagen && !errorQr}>
         {errorQr ? (

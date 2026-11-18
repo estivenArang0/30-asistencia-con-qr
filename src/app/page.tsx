@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { TarjetaSesion } from "@/components/TarjetaSesion";
 import { pedir } from "@/lib/cliente";
+import { ordenarSesiones } from "@/lib/estado-sesion";
 
 interface Usuario {
   uid: string;
+  correo: string;
   rol: "docente" | "estudiante";
 }
 
@@ -23,6 +26,14 @@ export default function InicioPage() {
   const [cargandoUsuario, setCargandoUsuario] = useState(true);
   const [sesiones, setSesiones] = useState<SesionListada[]>([]);
   const [estado, setEstado] = useState<Estado>("cargando");
+  const [ahoraMs, setAhoraMs] = useState(0);
+
+  useEffect(() => {
+    const actualizar = () => setAhoraMs(Date.now());
+    actualizar();
+    const intervalo = window.setInterval(actualizar, 30_000);
+    return () => window.clearInterval(intervalo);
+  }, []);
 
   useEffect(() => {
     let vivo = true;
@@ -94,7 +105,7 @@ export default function InicioPage() {
   if (usuario.rol === "estudiante") {
     return (
       <div className="tarjeta">
-        <h1>Hola, {usuario.uid}</h1>
+        <h1>{usuario.correo ? `Hola, ${usuario.correo}` : "Hola"}</h1>
         <p>Cuando el docente muestre el QR, escanéalo o abre el enlace para registrar tu asistencia.</p>
         <Link className="boton" href="/historial">
           Ver mi historial
@@ -136,16 +147,8 @@ export default function InicioPage() {
 
       {estado === "listo" ? (
         <div className="grid grid--dos">
-          {sesiones.map((sesion) => (
-            <article className="tarjeta" key={sesion.id}>
-              <h2>{sesion.curso}</h2>
-              <p>
-                <time dateTime={sesion.inicia}>{new Date(sesion.inicia).toLocaleString("es-CO")}</time>
-              </p>
-              <Link className="boton boton--secundario" href={`/docente/sesiones/${sesion.id}`}>
-                Ver QR y asistentes
-              </Link>
-            </article>
+          {ordenarSesiones(sesiones, ahoraMs).map((sesion) => (
+            <TarjetaSesion key={sesion.id} sesion={sesion} ahoraMs={ahoraMs} />
           ))}
         </div>
       ) : null}
