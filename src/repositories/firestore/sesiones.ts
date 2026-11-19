@@ -1,7 +1,7 @@
 /** Repositorio de sesiones sobre Firestore (Admin SDK, solo servidor). */
 import { getFirestore } from "firebase-admin/firestore";
-import { AppError } from "@/lib/errores";
-import { obtenerAdmin } from "@/lib/firebase-admin";
+import { AppError } from "@/lib/http/errores";
+import { obtenerAdmin } from "@/lib/firebase/admin";
 import type { RepositorioSesiones, Sesion } from "@/repositories/sesiones";
 
 const COLECCION = "sesiones";

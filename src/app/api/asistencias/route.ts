@@ -1,5 +1,5 @@
 import { requerirRol, requerirUsuario } from "@/lib/auth";
-import { obtenerSecretoQr } from "@/lib/config";
+import { obtenerSecretoQr } from "@/lib/http/config";
 import { leerJson, manejar } from "@/lib/http";
 import { repositorioAsistencias } from "@/repositories/asistencias";
 import { esquemaAsistencia } from "@/schemas/asistencia";

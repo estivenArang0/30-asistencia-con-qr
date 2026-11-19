@@ -1,7 +1,8 @@
-/** Sesiones de asistencia: contrato e implementación en memoria. */
+/** Contrato del repositorio de sesiones y selección de implementación. */
+import { firebaseAdminDisponible } from "@/lib/http/config";
 import type { SesionAsistencia } from "@/repositories/asistencias";
-import { firebaseAdminDisponible } from "@/lib/config";
-import { RepositorioSesionesFirestore } from "@/repositories/sesiones-firestore";
+import { RepositorioSesionesFirestore } from "@/repositories/firestore/sesiones";
+import { RepositorioSesionesEnMemoria } from "@/repositories/memoria/sesiones";
 
 export interface Sesion {
   id: string;
@@ -18,24 +19,6 @@ export interface RepositorioSesiones {
   crear(sesion: Sesion): Promise<Sesion>;
   obtener(id: string): Promise<Sesion | null>;
   listarPorDocente(uid: string): Promise<Sesion[]>;
-}
-
-/** Implementación en memoria: pruebas y desarrollo. No persiste nada. */
-export class RepositorioSesionesEnMemoria implements RepositorioSesiones {
-  private readonly sesiones = new Map<string, Sesion>();
-
-  async crear(sesion: Sesion): Promise<Sesion> {
-    this.sesiones.set(sesion.id, sesion);
-    return sesion;
-  }
-
-  async obtener(id: string): Promise<Sesion | null> {
-    return this.sesiones.get(id) ?? null;
-  }
-
-  async listarPorDocente(uid: string): Promise<Sesion[]> {
-    return [...this.sesiones.values()].filter((sesion) => sesion.docenteUid === uid);
-  }
 }
 
 /**

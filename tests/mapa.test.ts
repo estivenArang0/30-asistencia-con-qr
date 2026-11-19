@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { urlMapa } from "@/lib/mapa";
+import { urlMapa } from "@/lib/utils/mapa";
 
 describe("urlMapa", () => {
   it("arma el enlace exacto de Google Maps", () => {

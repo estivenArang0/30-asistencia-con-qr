@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ErrorApi, pedir } from "@/lib/cliente";
-import { urlMapa } from "@/lib/mapa";
+import { ErrorApi, pedir } from "@/lib/http/cliente";
+import { urlMapa } from "@/lib/utils/mapa";
 
 interface Props {
   token: string;

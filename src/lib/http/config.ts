@@ -1,5 +1,5 @@
 /** Configuración del servidor. Solo se lee aquí, nunca en los servicios puros. */
-import { AppError } from "@/lib/errores";
+import { AppError } from "@/lib/http/errores";
 
 const LONGITUD_MINIMA_SECRETO = 16;
 

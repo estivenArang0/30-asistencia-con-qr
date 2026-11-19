@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { destinoSeguro } from "@/lib/redireccion";
+import { destinoSeguro } from "@/lib/utils/redireccion";
 
 describe("destinoSeguro", () => {
   it("acepta rutas internas", () => {

@@ -8,11 +8,11 @@ import { ListaAsistentes, type Asistente, type EstadoLista } from "@/components/
 import { useCountdown } from "@/hooks/useCountdown";
 import { usePaginaVisible } from "@/hooks/usePaginaVisible";
 import { usePolling } from "@/hooks/usePolling";
-import { ErrorApi, leerToken, pedir } from "@/lib/cliente";
-import { ETIQUETA_ESTADO, estadoSesion } from "@/lib/estado-sesion";
-import { formatearFechaHora } from "@/lib/fechas";
-import { urlMapa } from "@/lib/mapa";
-import { urlAsistencia } from "@/lib/url-asistencia";
+import { ErrorApi, leerToken, pedir } from "@/lib/http/cliente";
+import { ETIQUETA_ESTADO, estadoSesion } from "@/lib/utils/estado-sesion";
+import { formatearFechaHora } from "@/lib/utils/fechas";
+import { urlMapa } from "@/lib/utils/mapa";
+import { urlAsistencia } from "@/lib/utils/url-asistencia";
 
 interface DatosQr {
   token: string;

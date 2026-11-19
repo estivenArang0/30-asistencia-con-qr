@@ -1,7 +1,7 @@
-import { AppError } from "@/lib/errores";
+import { AppError } from "@/lib/http/errores";
 import { requerirRol, requerirUsuario } from "@/lib/auth";
 import { manejar } from "@/lib/http";
-import { obtenerSecretoQr } from "@/lib/config";
+import { obtenerSecretoQr } from "@/lib/http/config";
 import { repositorioSesiones } from "@/repositories/sesiones";
 import {
   DURACION_INTERVALO_MS,

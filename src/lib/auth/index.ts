@@ -5,7 +5,7 @@
  * - Verificador dev `dev.<uid>.<rol>` SOLO con AUTH_DEV=1 y fuera de producción.
  * El rol sale siempre de los custom claims, nunca del cuerpo ni de la URL.
  */
-import { AppError } from "@/lib/errores";
+import { AppError } from "@/lib/http/errores";
 
 export type Rol = "docente" | "estudiante";
 
@@ -44,7 +44,7 @@ function leerCookie(request: Request, nombre: string): string | null {
 
 async function usuarioDesdeIdToken(token: string): Promise<Usuario | null> {
   try {
-    const { adminConfigurado, authAdmin } = await import("@/lib/firebase-admin");
+    const { adminConfigurado, authAdmin } = await import("@/lib/firebase/admin");
     if (!adminConfigurado()) return null;
     const decodificado = await authAdmin().verifyIdToken(token, true);
     const rol = decodificado.rol;
@@ -57,7 +57,7 @@ async function usuarioDesdeIdToken(token: string): Promise<Usuario | null> {
 
 async function usuarioDesdeCookieSesion(cookie: string): Promise<Usuario | null> {
   try {
-    const { adminConfigurado, authAdmin } = await import("@/lib/firebase-admin");
+    const { adminConfigurado, authAdmin } = await import("@/lib/firebase/admin");
     if (!adminConfigurado()) return null;
     const decodificado = await authAdmin().verifySessionCookie(cookie, true);
     const rol = decodificado.rol;

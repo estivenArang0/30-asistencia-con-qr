@@ -1,6 +1,6 @@
 /** Envoltorio de Route Handlers: errores homogéneos, sin caché y check de Origin. */
 import { ZodError } from "zod";
-import { AppError } from "@/lib/errores";
+import { AppError } from "@/lib/http/errores";
 
 export interface DetalleError {
   campo: string;

@@ -6,14 +6,10 @@ import { GET as getSesiones, POST as postSesiones } from "@/app/api/sesiones/rou
 import { GET as getAsistentes } from "@/app/api/sesiones/[id]/asistentes/route";
 import { GET as getExportar } from "@/app/api/sesiones/[id]/exportar/route";
 import { GET as getQr } from "@/app/api/sesiones/[id]/qr/route";
-import {
-  RepositorioAsistenciasEnMemoria,
-  reemplazarRepositorioAsistencias,
-} from "@/repositories/asistencias";
-import {
-  RepositorioSesionesEnMemoria,
-  reemplazarRepositorioSesiones,
-} from "@/repositories/sesiones";
+import { reemplazarRepositorioAsistencias } from "@/repositories/asistencias";
+import { RepositorioAsistenciasEnMemoria } from "@/repositories/memoria/asistencias";
+import { reemplazarRepositorioSesiones } from "@/repositories/sesiones";
+import { RepositorioSesionesEnMemoria } from "@/repositories/memoria/sesiones";
 import { generarToken } from "@/services/qr-token";
 
 const SECRETO = "secreto-de-prueba-123456";

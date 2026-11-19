@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { pedir } from "@/lib/cliente";
+import { pedir } from "@/lib/http/cliente";
 
 interface Asistencia {
   sesionId: string;

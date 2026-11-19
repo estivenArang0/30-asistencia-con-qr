@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   variablesFaltantes: vi.fn(),
 }));
 
-vi.mock("@/lib/firebase-admin", () => mocks);
+vi.mock("@/lib/firebase/admin", () => mocks);
 
 import { GET as getYo } from "@/app/api/auth/yo/route";
 import { POST as postSesion } from "@/app/api/auth/sesion/route";

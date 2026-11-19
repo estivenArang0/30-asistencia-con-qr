@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { urlAsistencia } from "@/lib/url-asistencia";
+import { urlAsistencia } from "@/lib/utils/url-asistencia";
 
 describe("urlAsistencia", () => {
   it("construye la URL absoluta de asistencia", () => {

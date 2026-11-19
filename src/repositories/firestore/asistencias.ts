@@ -1,7 +1,7 @@
 /** Repositorio de asistencias sobre Firestore: sesiones/{id}/asistencias/{uid}. */
 import { getFirestore } from "firebase-admin/firestore";
-import { AppError } from "@/lib/errores";
-import { obtenerAdmin } from "@/lib/firebase-admin";
+import { AppError } from "@/lib/http/errores";
+import { obtenerAdmin } from "@/lib/firebase/admin";
 import type {
   AsistenciaDeEstudiante,
   AsistenciaListada,

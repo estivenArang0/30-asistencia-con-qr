@@ -1,5 +1,5 @@
-import { AppError } from "@/lib/errores";
-import { adminConfigurado, authAdmin, variablesFaltantes } from "@/lib/firebase-admin";
+import { AppError } from "@/lib/http/errores";
+import { adminConfigurado, authAdmin, variablesFaltantes } from "@/lib/firebase/admin";
 import { leerJson, manejar } from "@/lib/http";
 
 export const runtime = "nodejs";

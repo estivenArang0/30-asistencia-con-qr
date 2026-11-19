@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { borrarToken, pedir } from "@/lib/cliente";
+import { borrarToken, pedir } from "@/lib/http/cliente";
 
 interface Usuario {
   correo: string;

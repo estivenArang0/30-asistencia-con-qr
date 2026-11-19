@@ -1,5 +1,5 @@
 /** Caso de uso: registrar la asistencia de un estudiante a una sesión. */
-import { AppError } from "@/lib/errores";
+import { AppError } from "@/lib/http/errores";
 import type { RepositorioAsistencias } from "@/repositories/asistencias";
 import { dentroDelRadio, haversine } from "@/services/distancia";
 import { verificarToken } from "@/services/qr-token";

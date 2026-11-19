@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { estadoSesion, ordenarSesiones } from "@/lib/estado-sesion";
+import { estadoSesion, ordenarSesiones } from "@/lib/utils/estado-sesion";
 
 const INICIA = "2026-11-17T10:00:00-05:00";
 const TERMINA = "2026-11-17T11:00:00-05:00";

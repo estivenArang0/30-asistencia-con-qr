@@ -1,6 +1,6 @@
 import { FormularioAsistencia } from "@/components/FormularioAsistencia";
-import { obtenerSecretoQr } from "@/lib/config";
-import { AppError } from "@/lib/errores";
+import { obtenerSecretoQr } from "@/lib/http/config";
+import { AppError } from "@/lib/http/errores";
 import { verificarToken } from "@/services/qr-token";
 
 export const runtime = "nodejs";

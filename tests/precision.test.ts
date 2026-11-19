@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mensajePrecision, PRECISION_MAXIMA_M } from "@/lib/precision";
+import { mensajePrecision, PRECISION_MAXIMA_M } from "@/lib/utils/precision";
 
 const AVISO =
   "Ubicación poco precisa; usa un dispositivo con GPS o corrige las coordenadas a mano";

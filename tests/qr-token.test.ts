@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AppError } from "@/lib/errores";
+import { AppError } from "@/lib/http/errores";
 import { generarToken, verificarToken } from "@/services/qr-token";
 
 const SECRETO = "secreto-de-prueba";

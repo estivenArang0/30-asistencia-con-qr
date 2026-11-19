@@ -9,7 +9,7 @@
  * El secreto se recibe por parámetro; este módulo nunca lee variables de entorno.
  */
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { AppError } from "@/lib/errores";
+import { AppError } from "@/lib/http/errores";
 
 export const DURACION_INTERVALO_MS = 30_000;
 export const TOLERANCIA_INTERVALOS = 2;

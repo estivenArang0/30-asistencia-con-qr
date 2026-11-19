@@ -3,9 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ZodError } from "zod";
-import { pedir } from "@/lib/cliente";
-import { urlMapa } from "@/lib/mapa";
-import { mensajePrecision } from "@/lib/precision";
+import { pedir } from "@/lib/http/cliente";
+import { urlMapa } from "@/lib/utils/mapa";
+import { mensajePrecision } from "@/lib/utils/precision";
 import { esquemaSesion } from "@/schemas/asistencia";
 
 interface Errores {

@@ -1,4 +1,4 @@
-import { AppError } from "@/lib/errores";
+import { AppError } from "@/lib/http/errores";
 import { requerirRol, requerirUsuario } from "@/lib/auth";
 import { manejar } from "@/lib/http";
 import { repositorioAsistencias } from "@/repositories/asistencias";

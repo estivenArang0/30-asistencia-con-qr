@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { TarjetaSesion } from "@/components/TarjetaSesion";
-import { pedir } from "@/lib/cliente";
-import { ordenarSesiones } from "@/lib/estado-sesion";
+import { pedir } from "@/lib/http/cliente";
+import { ordenarSesiones } from "@/lib/utils/estado-sesion";
 
 interface Usuario {
   uid: string;

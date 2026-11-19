@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { ETIQUETA_ESTADO, estadoSesion } from "@/lib/estado-sesion";
-import { formatearFechaHora } from "@/lib/fechas";
+import { ETIQUETA_ESTADO, estadoSesion } from "@/lib/utils/estado-sesion";
+import { formatearFechaHora } from "@/lib/utils/fechas";
 
 export interface SesionTarjeta {
   id: string;

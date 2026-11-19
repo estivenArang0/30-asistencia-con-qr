@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { AppError } from "@/lib/errores";
+import { AppError } from "@/lib/http/errores";
 import type { SesionAsistencia } from "@/repositories/asistencias";
-import { RepositorioAsistenciasEnMemoria } from "@/repositories/asistencias";
+import { RepositorioAsistenciasEnMemoria } from "@/repositories/memoria/asistencias";
 import { registrarAsistencia } from "@/services/asistencia";
 import { generarToken } from "@/services/qr-token";
 

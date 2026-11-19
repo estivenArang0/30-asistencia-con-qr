@@ -2,9 +2,9 @@
 
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
-import { guardarToken } from "@/lib/cliente";
-import { authCliente, firebaseWebConfigurado } from "@/lib/firebase-client";
-import { destinoSeguro } from "@/lib/redireccion";
+import { guardarToken } from "@/lib/http/cliente";
+import { authCliente, firebaseWebConfigurado } from "@/lib/firebase/cliente";
+import { destinoSeguro } from "@/lib/utils/redireccion";
 
 const MENSAJES: Record<string, string> = {
   "auth/invalid-credential": "Correo o contraseña incorrectos.",
