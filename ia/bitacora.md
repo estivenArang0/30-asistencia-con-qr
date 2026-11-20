@@ -11,6 +11,7 @@ Registro de cada uso relevante de la IA en el proyecto. Una fila por intervenci�
 | 2026-11-16 | Añadir la dependencia `qrcode` | `package.json`, `src/types/qrcode.d.ts` | Ejecuté `npm run build`: pasa | Se aceptó `qrcode` con tipos locales |
 | 2026-11-16 | Construir la interfaz del docente y del estudiante | `src/app/**`, `src/components/**`, `src/hooks/**` | Ejecuté `npm run check` (37 tests) y `npm run build`. No medí Lighthouse ni axe (ver `CALIDAD.md`) | Se aceptó; alcance honesto en `CALIDAD.md` |
 | 2026-11-16 | Redactar README, OpenAPI, colección Bruno y CALIDAD | `README.md`, `openapi.yaml`, `bruno/`, `CALIDAD.md` | Ejecuté `git grep` sobre bruno/, README y openapi.yaml: sin contraseñas ni claves | Se aceptó: memoria, login dev, sin Vercel |
+| 2026-11-19 | Crear `opencode.json` con las restricciones de IA de la sección 15 | `opencode.json`, `ia/pruebas-restricciones.md` |  | Se aceptó: lectura de secretos denegada, edición acotada, shell con allowlist y `external_directory: deny` |
 
 ## Reglas de la bitácora
 - Toda intervención de IA que produzca código, configuración o decisiones queda registrada.

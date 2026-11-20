@@ -100,3 +100,41 @@ openclaw tui --session agent:qr-docente:main
 
 Pegar el prompt de pruebas (a–d) y anotar los mensajes literales en la tabla del punto 3.
 Para el día a día, `npm run check` debe seguir verde desde el proyecto real.
+
+## 7. opencode.json — restricciones de la sección 15 (2026-11-19)
+
+**Estado:** `opencode` **no está instalado** en esta máquina: `opencode --version` devuelve
+`CommandNotFoundException`; tampoco aparece en `npm ls -g` ni en las rutas habituales.
+Por eso **no se ejecutó** `opencode debug config` ni una prueba runtime de lectura/`git push`.
+
+**Esquema consultado:** `https://opencode.ai/config.json` (2026-11-19). El esquema vigente
+incluye `permissions` (V2, acciones `read`/`edit`/`shell`/`external_directory`) y mantiene
+`permission` como compatibilidad V1 (`read`/`edit`/`bash`/`external_directory`). El archivo
+incluye ambas formas con la misma política para que las restricciones apliquen en cualquiera
+de las dos versiones.
+
+**Validación estática ejecutada:**
+
+```text
+JSON OK: top=$schema,instructions,permission,permissions permission=read,edit,bash,external_directory reglas=39
+```
+
+Reglas comprobadas sobre el JSON (evaluación de patrones, última coincidencia gana):
+
+| Caso | Regla que resuelve | Efecto |
+|---|---|---|
+| `read .env.local` | `*.env.*` | DENY |
+| `read .env.example` | `*.env.example` (excepción final) | ALLOW |
+| `read C:/Users/estiven/.secretos-qr/.env.local` | `external_directory` y `C:/Users/estiven/.secretos-qr/*` | DENY |
+| `read **/*.pem`, `**/*.key`, `**/firebase-admin*.json` | patrones de secreto | DENY |
+| `edit README.md` | `*` | ASK |
+| `edit src/app/page.tsx` | `src/**` | ALLOW |
+| `bash git status --short` | `git status *` | ALLOW |
+| `bash git push origin refactor/capas` | `git push*` | DENY |
+| `bash rm archivo` / `del archivo` / `curl ...` / `vercel ...` | reglas de denegación | DENY |
+| `external_directory *` | `external_directory` | DENY |
+
+**Resultado:** el JSON es válido y la política estática deniega `.env*` (salvo `.env.example`),
+claves y la carpeta externa de secretos, bloquea `git push`/`rm`/`del`/`curl`/`vercel`, y deja
+la edición en `ask` fuera de las carpetas y archivos de configuración permitidos. **Pendiente
+la comprobación runtime con `opencode` instalado.**
